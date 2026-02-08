@@ -51,8 +51,9 @@ export async function getStudentsByTeacher(teacherFirstName) {
 
     console.log("Raw data for teacher:", teacherFirstName, data)
 
-    // Get the hourly rate from the first record (same teacher)
-    const hourlyRate = data?.[0]?.teachers?.hourly_rate || 0
+    // Get teacher info from the first record (same teacher for all)
+    const teacher = data?.[0]?.teachers
+    const hourlyRate = teacher?.hourly_rate || 0
 
     // Flatten the nested structure, keeping enrollment data with student
     // Each enrollment is a separate row (same student can appear multiple times with different enrollments)
@@ -74,10 +75,12 @@ export async function getStudentsByTeacher(teacherFirstName) {
             return {
                 id: student.enrollment_id,  // Use enrollment ID as unique key
                 student_id: student.id,
-                name: `${student.first_name} ${student.last_name?.charAt(0) || ''}`,
+                student_name: `${student.first_name} ${student.last_name?.charAt(0) || ''}`,
                 avatar_url: student.avatar_url,
                 pay: lessonPay,
-                duration: student.default_lesson_duration || "30 min"
+                duration: student.default_lesson_duration || "30 min",
+                teacher_id: teacher?.id,
+                teacher_name: `${teacher?.first_name || ''} ${teacher?.last_name?.charAt(0) || ''}`
             }
         })
     

@@ -1,23 +1,31 @@
-import { connectToStaffDB } from "@/db/database";
 import { NextResponse } from "next/server";
-import { Student, Meta } from "@/models/models";
+import { supabaseServer } from "@/lib/supabaseServer";
 
+// MongoDB imports (still needed for Meta updates / routing)
+import { connectToStaffDB } from "@/db/database";
+import { Meta } from "@/models/models";
 
+// Map frontend status values to Supabase enum values
+function mapStatusToEnum(status) {
+    switch (status) {
+        case 'present':
+            return 'present'
+        case 'absent':
+            return 'absent_not_billable'
+        case 'counted':
+            return 'absent_billable'
+        default:
+            return 'unrecorded'
+    }
+}
 
 export const POST = async (request) => {
     
     const {attendance, teacher, week, payday, teacherNotes, total} = await request.json()
 
-    console.log("logging request from /submit API:", attendance, teacher, week, payday, teacherNotes, total)
+    console.log("logging attendance from /submit API:", attendance)
 
-    const getAttendanceKey = () => {
-        if(week === "week1Submitted") {
-            return "attendance.week1"
-        } else {
-            return "attendance.week2"
-        }
-    }
-
+    // MongoDB helper functions for Meta updates
     const getNotesKey = () => {
         if(week === "week1Submitted") {
             return "week1Notes"
@@ -34,18 +42,44 @@ export const POST = async (request) => {
         }
     }
 
-    console.log("from submit API:", Object.entries(attendance))
+    // Determine which week columns to update
+    const weekStatusColumn = week === "week1Submitted" ? "week_1_status" : "week_2_status"
+    const weekNotesColumn = week === "week1Submitted" ? "week_1_notes" : "week_2_notes"
 
-    
     try {
+        // ============ SUPABASE LOGIC ============
+        // Upsert attendance records to Supabase
+        for (const record of attendance) {
+            const mappedStatus = mapStatusToEnum(record.status)
+            
+            const { error } = await supabaseServer
+                .from('portal_attendance')
+                .upsert(
+                    {
+                        enrollment_id: record.enrollment_id,
+                        student_id: record.student_id,
+                        student_name: record.student_name,
+                        teacher_id: record.teacher_id,
+                        teacher_name: record.teacher_name,
+                        payday: record.payday,
+                        [weekStatusColumn]: mappedStatus,
+                        [weekNotesColumn]: teacherNotes || null
+                    },
+                    { onConflict: 'enrollment_id' }
+                )
+
+            if (error) {
+                console.error("Error upserting attendance record:", error)
+                throw error
+            }
+        }
+
+        console.log(`Successfully saved ${attendance.length} attendance records for ${weekStatusColumn}`)
+
+        // ============ MONGODB META UPDATE (for routing) ============
         await connectToStaffDB();
 
-        Object.entries(attendance).forEach( async ([key, value]) => {
-            await Student.updateOne({"teacher": teacher, "name": key },
-                                    {$set: {[getAttendanceKey()]: value}})
-        })
-
-        // Save weekly total and notes
+        // Save weekly total, notes, and submission status to Meta
         await Meta.updateOne(
             {"teacher": teacher}, 
             {$set: {[week]: true, "payday": payday, [getNotesKey()]: teacherNotes, [getWeekTotalKey()]: total}}

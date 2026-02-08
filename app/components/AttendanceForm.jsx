@@ -12,13 +12,18 @@ export const AttendanceForm = ({students}) => {
 
    const path = usePathname()
    const {data: session} = useSession()
-   const [attendance, setAttendance] = useState({})
+   const [attendance, setAttendance] = useState([])
    const [total, setTotal] = useState(0)
    const {closestPaydayUnformatted} = usePayday()
    const [teacherNotes, setTeacherNotes] = useState("")
 
 
-console.log("From attendance form, closestPaydayUnformatted:", closestPaydayUnformatted)
+// console.log("From attendance form, closestPaydayUnformatted:", closestPaydayUnformatted)
+
+console.log("LOgging students from attendance form================", students)
+
+   console.log("Logging attendance from attendance form++++++++++++++++++++++", attendance)
+//  { 'Andrew E': 'present', 'Joshua M': 'present', 'Justin H': 'present', 'Lucas S': 'present', 'Noah S': 'present', 'Tyler S': 'present' }   
 
    const handleSubmitAttendance = async (e) => {
         e.preventDefault()
@@ -59,7 +64,7 @@ console.log("From attendance form, closestPaydayUnformatted:", closestPaydayUnfo
             </thead>
             <tbody>
                 {students && students.map((student, index) => (
-                    <StudentRow key={index} student={student} index={index} setAttendance={setAttendance} setTotal={setTotal} />
+                    <StudentRow key={index} student={student} index={index} setAttendance={setAttendance} setTotal={setTotal} payday={closestPaydayUnformatted} />
                 ))}
             </tbody>
         </table>

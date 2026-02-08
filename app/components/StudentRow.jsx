@@ -5,7 +5,7 @@ import { useState } from "react"
 
 
 
-export const StudentRow = ({student, index, setAttendance, setTotal}) => {
+export const StudentRow = ({student, index, setAttendance, setTotal, payday}) => {
 
   const [attendanceStatus, setAttendanceStatus] = useState("")
   const [attendanceSelected, setAttendanceSelected] = useState(false)
@@ -32,7 +32,18 @@ export const StudentRow = ({student, index, setAttendance, setTotal}) => {
     setAttendanceStatus(e.target.value)
 
     // Updates attendance for all students for the current week and saves data to an object
-    setAttendance((prev) => ({...prev, [student.name]: value}))
+    // setAttendance((prev) => ({...prev, [student.name]: value}))
+    setAttendance((prev) => ([...prev, {
+      enrollment_id: student.id,  // This is the enrollment_id from actions.js
+      student_id: student.student_id,
+      student_name: student.student_name,
+      teacher_id: student.teacher_id,
+      teacher_name: student.teacher_name,
+      status: value,
+      duration: student.duration,
+      pay: student.pay,
+      payday: payday
+    }]))
   }
 
   
@@ -53,7 +64,7 @@ export const StudentRow = ({student, index, setAttendance, setTotal}) => {
   return (
     <tr className="text-center bg-gray-100 h-6 even:bg-gray-200">
         <td className="py-2.5 px-3 hidden md:block">{index + 1}</td>
-        <td className="py-2.5 px-3 text-left">{student.name}</td>
+        <td className="py-2.5 px-3 text-left">{student.student_name}</td>
         <td className="py-2.5">
             <select defaultValue={"attendance"} onChange={(e) => handleSelect(e)} className="cursor-pointer px-2 py-1 border rounded-md">
                 <option value="attendance" disabled>attendance</option>
