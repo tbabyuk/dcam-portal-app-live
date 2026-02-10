@@ -13,8 +13,12 @@ const WeekOneAttendancePage = () => {
   const [students, setStudents] = useState([])
   const [errorMessage, setErrorMessage] = useState("")
 
+
+
   const fetchStudents = async () => {  
     const teacherFirstName = session?.user.name.toLowerCase()
+
+    console.log("teacher's first name:", teacherFirstName)
 
     try {
       const students = await getStudentsByTeacher(teacherFirstName)
@@ -25,9 +29,6 @@ const WeekOneAttendancePage = () => {
       console.log("Error fetching students:", error)
     }
   }
-
-
-
 
 
   const checkAttendanceStatus = async () => {
