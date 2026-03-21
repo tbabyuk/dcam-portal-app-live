@@ -64,6 +64,7 @@ const WeekOneAttendancePage = () => {
 
   return (
         <div className="py-10 px-8 md:px-24">
+            <p className="mb-10 text-center text-sm">Remember that 'present' means you taught the student. If the student was present but you did not teach them, please mark them as 'absent'.</p>
             <p className="text-center mb-6">
                 {errorMessage && (<span className="text-red-500">{errorMessage}</span>)}
             </p>
