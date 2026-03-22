@@ -20,9 +20,9 @@ export const AttendanceForm = ({students}) => {
 
 // console.log("From attendance form, closestPaydayUnformatted:", closestPaydayUnformatted)
 
-console.log("LOgging students from attendance form================", students)
+console.log("Logging students from attendance form================", students)
 
-   console.log("Logging attendance from attendance form++++++++++++++++++++++", attendance)
+console.log("Logging attendance from attendance form++++++++++++++++++++++", attendance)
 //  { 'Andrew E': 'present', 'Joshua M': 'present', 'Justin H': 'present', 'Lucas S': 'present', 'Noah S': 'present', 'Tyler S': 'present' }   
 
    const handleSubmitAttendance = async (e) => {

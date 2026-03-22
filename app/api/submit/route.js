@@ -47,6 +47,13 @@ export const POST = async (request) => {
     const weekNotesColumn = week === "week1Submitted" ? "week_1_notes" : "week_2_notes"
     const weekPayColumn = week === "week1Submitted" ? "week_1_pay" : "week_2_pay"
 
+    // Compute the week total server-side so MongoDB and Supabase always use the same value.
+    const weekTotal = attendance.reduce((sum, record) => {
+        return (record.status === "present" || record.status === "counted")
+            ? sum + (record.pay ?? 0)
+            : sum
+    }, 0)
+
     try {
         // ============ SUPABASE LOGIC ============
         // Upsert attendance records to Supabase
@@ -88,7 +95,7 @@ export const POST = async (request) => {
         // Save weekly total, notes, and submission status to Meta
         await Meta.updateOne(
             {"teacher": teacher}, 
-            {$set: {[week]: true, "payday": payday, [getNotesKey()]: teacherNotes, [getWeekTotalKey()]: total}}
+            {$set: {[week]: true, "payday": payday, [getNotesKey()]: teacherNotes, [getWeekTotalKey()]: weekTotal}}
         )
 
         // If week 2 is being submitted, calculate and save totalPay
@@ -96,7 +103,7 @@ export const POST = async (request) => {
             // Fetch the current meta to get week1Total
             const meta = await Meta.findOne({"teacher": teacher})
             const week1Total = meta?.week1Total || 0
-            const week2Total = total
+            const week2Total = weekTotal
             const totalPay = week1Total + week2Total
 
             await Meta.updateOne(
@@ -104,7 +111,7 @@ export const POST = async (request) => {
                 {$set: {"totalPay": totalPay}}
             )
             
-            console.log("Calculated totalPay:", totalPay, "(week1:", week1Total, "+ week2:", week2Total, ")")
+            console.log("Calculated totalPay:", totalPay, "(week1:", week1Total, "+ week2:", weekTotal, ")")
         }
 
         return NextResponse.json({message: "success"}, {status: 200})

@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 export const POST = async (request) => {
     
-    const {teacher} = await request.json()
+    const {teacher} = await request.json() // teacher's first name
 
     console.log("logging teacher name from /check-meta API:", teacher)
 
